@@ -1,0 +1,46 @@
+
+> install.packages("quantmod")
+> library(quantmod)
+
+
+# 주가 데이터 다운로드
+> stock_code <- "035420.KS"
+> start_date <- "2019-01-01"
+> end_date <- "2023-12-31"
+> naver_prices <- getSymbols(stock_code, src = "yahoo", from = start_date, to = end_date, auto.assign = FALSE)
+
+> summary(naver_prices) 
+
+# 데이터 프레임 생성
+> naver_df <- data.frame(Date = index(naver_prices),
++ Open = Op(naver_prices), High = Hi(naver_prices), Low = Lo(naver_prices), Close = Cl(naver_prices), Volume = Vo(naver_prices), Adjusted = Ad(naver_prices))
+
+# 날짜와 종가만 저장
+> naver_short_df <- data.frame(Date = index(naver_prices),Close = Cl(naver_prices))
+
+# csv로 저장
+> write.csv(naver_df, file="naver_2019-2023.csv", row.names = FALSE)
+> write.csv(naver_short_df, file="naver_2019-2023_short.csv", row.names = FALSE)
+
+
+> library("zoo")
+
+# 날짜, 종가를 담은 csv파일 read 후 그래프 확인
+> naver_short <- read.zoo("naver_2019-2023_short.csv", sep=",", header=TRUE)
+> summary(naver_short)
+> plot(naver_short, main="Naver Stock", ylab="Price", xlab="Date")
+
+
+# ARIMA를 통해 예측하기
+> install.packages("forecast")
+> library(forecast)
+> arima <- auto.arima(return, stationary=TRUE, seasonal=FALSE, ic="aic")
+> summary(arima)
+> best_model <- auto.arima(return, setpwise=FALSE, seasonal=FALSE, trace=TRUE)
+> summary(best_model)
+
+> plot.ts(naver_short, main="NAVER Stock")
+
+
+> fit <- auto.arima(naver_short)
+> plot(forecast(fit, h=100))

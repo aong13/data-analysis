@@ -1,0 +1,46 @@
+
+> install.packages("quantmod")
+> library(quantmod)
+
+
+# 주가 데이터 다운로드
+> stock_code <- "005380.KS"
+> start_date <- "2019-01-01"
+> end_date <- "2023-12-31"
+> hyundai_prices <- getSymbols(stock_code, src = "yahoo", from = start_date, to = end_date, auto.assign = FALSE)
+
+> summary(hyundai_prices) 
+
+# 데이터 프레임 생성
+> hyundai_df <- data.frame(Date = index(hyundai_prices),
++ Open = Op(hyundai_prices), High = Hi(hyundai_prices), Low = Lo(hyundai_prices), Close = Cl(hyundai_prices), Volume = Vo(hyundai_prices), Adjusted = Ad(hyundai_prices))
+
+# 날짜와 종가만 저장
+> hyundai_short_df <- data.frame(Date = index(hyundai_prices),Close = Cl(hyundai_prices))
+
+# csv로 저장
+> write.csv(hyundai_df, file="hyundai_2019-2023.csv", row.names = FALSE)
+> write.csv(hyundai_short_df, file="hyundai_2019-2023_short.csv", row.names = FALSE)
+
+
+> library("zoo")
+
+# 날짜, 종가를 담은 csv파일 read 후 그래프 확인
+> hyundai_short <- read.zoo("hyundai_2019-2023_short.csv", sep=",", header=TRUE)
+> summary(hyundai_short)
+> plot(hyundai_short, main="hyundai Stock", ylab="Price", xlab="Date")
+
+
+# ARIMA를 통해 예측하기
+> install.packages("forecast")
+> library(forecast)
+> arima <- auto.arima(return, stationary=TRUE, seasonal=FALSE, ic="aic")
+> summary(arima)
+> best_model <- auto.arima(return, setpwise=FALSE, seasonal=FALSE, trace=TRUE)
+> summary(best_model)
+
+> plot.ts(hyundai_short, main="hyundai Stock")
+
+
+> fit <- auto.arima(hyundai_short)
+> plot(forecast(fit, h=100))
